@@ -1,0 +1,8 @@
+// para instalar o react com a linguagem typescript
+$ yarn create react-app letmeask --template typescript
+
+// iniciar o projeto 
+$ yarn start
+
+// instalar o firebase
+$ yarn add firebase
