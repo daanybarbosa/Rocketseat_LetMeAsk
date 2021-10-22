@@ -1,67 +1,28 @@
-/* **------- Ex 3 - ESTADO ---------** */
+import { BrowserRouter, Route } from 'react-router-dom';
 
-import {Button} from "./components/Button";
-
-function App() {
-  return (  
-    <div>
-      <Button />
-      <Button />
-      <Button />
-      <Button />
-      <Button />
-    </div>
-  );
-}
-
-export default App;
-
-/* **------- Ex 2 - PROPRIEDADES ---------** 
- // <a href="" target="_blank"></a> -> é um atributo que muda comportamento da ancora 
-
-
-// named export - export na linha da funcao
- import {Button} from "./components/Button";
-
- function App() {
-   return (  
-     <div>
-       <Button text="Botão 1"/>
-       <Button num={1}/>
-       <Button arrayB={['1,', '2', '3']}/>
-       <Button>Clique aqui</Button> 
-       <Button />
-     </div>
-   );
- }
- 
- export default App;
-  */
-
-/* **--------- com export default ----------** 
-import Button from "./components/Button";
+import { Home } from "./pages/Home";
+import { NewRoow } from "./pages/NewRoom";
 
 function App() {
   return (  
-    <div>
-      <Button />
-      <Button />
-      <Button />
-      <Button />
-      <Button />
-    </div>
+    // para criação de rotas/navegação
+    //  exact -> significa que o nome da rota precisa ser exatamente oq esta no caminho, por exemplo "/".
+    //  exact -> por padrao ele é verdadeiro, caso seja falso precisa especificar.
+    // exemplo: <Route path="/" exact={false} component={Home} />
+
+    <BrowserRouter>
+        <Route path="/" exact component={Home} />
+        <Route path="/rooms/new" exact component={NewRoow} />
+
+    </BrowserRouter>
+
+
+    // para visualizar as paginas criadas
+    //< Home />
+    //< NewRoow />
+
+  
   );
 }
 
 export default App;
-*/
-
-/* **------- Ex 1 - COMPONENTES ---------** 
-function App() {
-  return (
-    <h1> Hello World! </h1>
-  );
-}
-
-export default App;
-*/

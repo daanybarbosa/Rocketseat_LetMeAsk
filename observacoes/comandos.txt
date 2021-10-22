@@ -6,3 +6,12 @@ $ yarn start
 
 // instalar o firebase
 $ yarn add firebase
+
+// instalar o sass na versao 5
+$ yarn add node-sass@ˆ5.0.0
+
+// instalar o react-router-dom
+$ yarn add react-router-dom
+
+// instalar um pacote para o dom ser usado na linguagem typescript, -D em desenvolvimento
+$ yarn add @types/react-router-dom -D
