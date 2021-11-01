@@ -23,9 +23,13 @@ export const AuthContext = createContext({} as AuthContextType);
 
 export function AuthContextProvider(props: AuthContextProviderProps) {
 // Contexto de autenticação
+// Se o usuario esta cadastrado dentro desse estado, significa que o usuario esta autenticado na aplicação, caso contrario, ele é default (undefined) e nao se autenticou ainda
 const [user, setUser] = useState<User>();
 
-//Criando hook de autenticação
+// Criando hook de autenticação
+// Sempre quando começa com use é um Hook
+// Esse hook sempre ficara de olho se houve alguma modificação do estado do usuario.
+// serve para recuperar o usuario caso ele de um f5 ou quando fecha a pagina e volta para a aplicação, pois perde as informacoes do usuario
 useEffect(() => {
   const unsubscribe = auth.onAuthStateChanged(user => {
     if (user) {
@@ -48,6 +52,7 @@ useEffect(() => {
   }
 }, [])
 
+// Login com o Google
 async function signInWithGoogle() {
   // Autenticacao do usuario com o firebase
   const provider = new firebase.auth.GoogleAuthProvider();

@@ -1,0 +1,45 @@
+// Realtime Database - Firebase
+
+{
+  "rules": {
+    "rooms": {
+      ".read": false,
+      ".write": "auth != null",
+      "$roomId": {
+          ".read": true,
+          ".write": "auth != null && (!data.exists() || data.child('authorId').val() == auth.id)",
+          "questions": {
+              ".read": true,
+              ".write": "auth != null && (!data.exists() || data.parent().child('authorId').val() == auth.id)",
+    			"likes": {
+            ".read": true,
+            ".write": "auth != null && (!data.exists() || data.child('authorId').val() == auth.id)",
+          			}
+            }
+        }
+    }
+  }
+}
+
+
+
+// definir regras para as salas
+
+read ->  nao consigo fazer uma listagem de todas as salas, nao existe uma listagem de todas as salas
+write -> apenas os usuarios autenticados conseguem criar as salas 
+$roomId -> quando o usuario estiver interagindo uma sala unica, e nao com todas as salas, esse 
+    roomId ira fornecer o id da sala que o usuario esta interagindo 
+    read -> quando o usuario precisar acessar uma sala especifica, ai permite a leitura.
+    write -> para alterar dados de uma sala especifica, o usuario precisa ser autenticado, e o usuario precisa ser o dono da sala
+        !data.exists() -> significa que a pergunta nao existe ainda, caso exista, sera feito a alteração da pergunta 
+        data.child() -> dados especificos da sala
+        authorId -> id do usuario que criou a sala 
+        val -> buscando o valor da propriedade auth.id (quem criou a sala)
+        auth.id -> usuario autenticado
+    questions -> perguntas daquela sala 
+        read -> qualquer usuaio pode ler as perguntas
+        write -> para o usuario escrever novas perguntas 
+            auth != null -> o usuario precisa ser autenticado. 
+            data.parent().child('authorId').val() == auth.id -> para alterar dados de uma pergunta, o usuario precisa ser quem criou a sala e nao a pergunta especifica 
+                perguntas precisa ser alterada pela a pessoa que criou ela 
+    likes -> dentro das questions e seguira a mesma regra da sala

@@ -1,64 +1,63 @@
-// webpack (snowpack, vite, ...) ->  é um module bundler 
-
-// ira recuperar o valor de um contexto
-//import { useContext } from 'react';
-
-// para usar navegacao dentro do botao 
 import { useHistory } from 'react-router-dom';
-
-//import {auth, firebase} from '../services/firebase';
+import { FormEvent, useState } from 'react';
 
 //importar imagens
 import illustrationImg from '../assets/images/illustration.svg';
 import logoImg from '../assets/images/logo.svg';
 import googleIconImg from '../assets/images/google-icon.svg';
+import { database } from '../services/firebase';
 
 // importacao do componente Button (ButtonHTMLAttributes)
 import { Button } from '../components/Button';
 
-// importacao do componente TestContext -> Componente do React
-//import { TestContext } from '../App'
-
 import '../styles/auth.scss';
-//import { AuthContext } from '../contexts/AuthContext';
-//import { useContext } from 'react';
-import { useAuth } from '../hocks/useAuth';
+import { useAuth } from '../hooks/useAuth';
 
-
-// todos os componentes precisam iniciar com letra maiuscula
-// no react as classes dentro das tags são chamadas de className, por conta que class já é reservado para a criacao de classes 
-// Button (ButtonHTMLAttributes) no "entrar na sala" é o componente criado para ser usado em varias paginas diferentes
 export function Home(){
 
     // useHistory é um Hook, ele precisa ficar dentro do componente, pq ele faz uso de informacoes que sao do contexto do componente
     const history = useHistory();
 
-    // Contexto - permite compartilhar informações entre componentes e funções que podem modificar esses valores e esses valores modificados irao refletir em todas as paginas da aplicação
-    // Contexto - ele expoe uma informacao 
-    //const {value, setValue} = useContext(TestContext);
-
     // Importar o contexto
-    //const {user, signInWithGoogle} = useContext(AuthContext)
-    const {user, signInWithGoogle} = useAuth()
+    const {user, signInWithGoogle} = useAuth();
 
+    // Criar um estado -> ira armazenado o roomCode (codigo da sala) que o usuario esta tentando entrar
+    const [roomCode, setRoomCode] = useState('');
+
+    // Criação de sala 
     async function handleCreateRoom(){
-        /*
-        // Autenticacao do usuario com o firebase
-        const provider = new firebase.auth.GoogleAuthProvider();
-        // Processo de login
-        auth.signInWithPopup(provider).then(result => {
-            console.log(result); 
-        */
-
             // se o usuario nao estiver autenticado
             if (!user){
                 await signInWithGoogle()
             }
 
-            // essa funcao sera incluida no botao do google para ser redirecionado para a nova pagina
-            // redirecionar o usuario para a criação da tela
+            // redirecionar o usuario para a criação da sala
             history.push('/rooms/new')
         };        
+
+        // Entrando na sala 
+        // essa função é usada no formulario, quando se usa uma função em um formulario precisa declarar o evento
+        async function handleJoinRoom(event: FormEvent){
+            event.preventDefault(); // precisa declarar em todo formulario no react
+
+            // verificar se o roomCode está vazio, se estiver nao sera executado
+            if(roomCode.trim() === ''){
+                return;
+            }
+
+            // ira puxar o id no firebase e comparar 
+            // get() -> ira puxar todos os dados dessa sala especificamente
+            const roomRef = await database.ref(`rooms/${roomCode}`).get();
+
+            // caso nao exista a sala informada
+            if(!roomRef.exists()){
+                alert('A sala não existe');
+                return;
+            }
+
+            // caso a sala exista 
+            history.push(`/rooms/${roomCode}`);
+        }
 
     return (
         <div id="page-auth">
@@ -75,10 +74,12 @@ export function Home(){
                         Crie sua sala com o Google
                     </button>
                     <div className="separator"> Ou entre em uma sala </div>
-                    <form>
+                    <form onSubmit={handleJoinRoom}>
                         <input 
                         type="text" 
                         placeholder="Digite o código da sala"
+                        onChange={event => setRoomCode(event.target.value)}
+                        value={roomCode}
                         />
                         <Button type="submit">
                             Entrar na sala 
