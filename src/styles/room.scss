@@ -4,18 +4,19 @@
         border-bottom: 1px solid #e2e2e2;
 
         .content{
-            max-width: 1120px;
+            max-width: 1128px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
 
-            >img {
+            > img {
                 max-height: 45px;
             }
 
-            >div{
+            > div{
                 display: flex;
+                // gap serve para dar o espaçamento entre os elementos dentro do display flex ou display grid
                 gap: 16px;
 
                 button {
@@ -105,5 +106,8 @@
             }
         }
 
+        .question-list {
+            margin-top: 32px;
+        }
     }
 }

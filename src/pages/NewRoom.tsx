@@ -15,28 +15,17 @@ export function NewRoow(){
 
     // Criando a sala -> quando o usuario criar a sala, sera redirecionado para a sala criada 
     const history = useHistory();
-
-    // Acesso ao nome da sala inserido no input -> mais comum é utilizar um estado para armazenar o valor do input
-    // String vazia -> Sempre iniciar o estado com o mesmo tipo que será salvo na variavel, no caso, sempre será vazio.
     const [newRoom, setNewRoom] = useState('');
 
     // Função que ira criar sala
-    // event -> ira gerar um evento para obter os dados inseridos pelo o usuario
-    // dessa forma, quando o usuario preencher o formulario nao ira piscar/redirecionar para a mesma tela.
     async function handleCreateRoom(event: FormEvent){
         event.preventDefault();
 
-        //console.log(newRoom);
-
-        // verificar se existe algum texto digitado pelo o usuario para criar uma nova sala
-        // trim() -> remover os espaços tanto na direita quanto na esquerda
         if(newRoom.trim() === ''){
             return; //ira retornar caso esteja vazio
         }
 
         // Banco de dados firebase
-        // Reference -> referencia para um registro de dado dentro do banco de dados
-        // rooms -> categoria dentro do banco de dados, que pode incluir dados, como o nome da sala, ou dados interativos, como um array/lista de perguntas
         const roomRef = database.ref('rooms');
 
         // ira pegar a referencia dentro do banco de dados e ira fazer um push -> jogar uma informação dentro do roomRef
@@ -51,10 +40,6 @@ export function NewRoow(){
 
     };
 
-    // No React, para salvar os dados inseridos pelo o usuario, precisa informar dentro do form.
-    // Por exemplo, <form onSubmit={handleCreateRoom}>, quando o usuario clicar no botao ira salvar as informações inseridas.
-    // onChange={event => setNewRoom(event.target.value)} -> toda vez que o input tiver o seu valor alterado, ira pegar o evento.
-    // value={newRoom} -> caso a variavel seja alterada por algum motivo, ira refletir no input.
     return (
         <div id="page-auth">
             <aside>

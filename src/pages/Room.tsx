@@ -4,15 +4,14 @@ import { RoomCode } from '../components/RoomCode';
 import { useParams } from 'react-router-dom';
 
 import '../styles/room.scss';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { database } from '../services/firebase';
+import { Question } from '../components/Question';
+import { useRoom } from '../hooks/useRoom';
 
-//tipagem - room 
-//As questions sao um objeto que a chave é uma string que recebe outro objeto que possui outra string e recebe outro objeto
-// Record -> tipagem de objetos - podemos pensar que é um objeto que possui uma chave string
+/* ** transferido para o useRoom.ts
 type FirebaseQuestions = Record<string, {
-    // campos que existem dentro do objeto
     author: {
         name: string;
         avatar: string;
@@ -20,10 +19,10 @@ type FirebaseQuestions = Record<string, {
     content: string;
     isAnswered: boolean;
     isHighlighted: boolean;
-}>;
+}>; */
 
-//tipagem - questions
-type Question = {
+/* ** transferido para o useRoom
+type QuestionType = {
     id: string;
     author: {
         name: string;
@@ -32,62 +31,33 @@ type Question = {
     content: string;
     isAnswered: boolean;
     isHighlighted: boolean;
-}
+}*/
 
-// tipagem - ira passar os parametros para o useParams()
 type RoomParams = {
     id: string;
 }
 
 export function Room() {
-    // Perguntas - Apenas usuarios autenticados poderao fazer novas perguntas
     const { user } = useAuth();
-
-    //parametro para uma rota - usa o react-router-dom - useParams
-    //por padrao o useParams() nao sabe quais parametros ira pegar na rota
-    //<RoomParams> -> no typescript é chamado de generic , é um parametro que passa para a tipagem  
     const params = useParams<RoomParams>();
-
-    // Estado - 
     const [newQuestion, setNewQuestion] = useState('');
-
-    //Estado - questions - ele armazena um array 
-    //useState<Question[]>([]) - no typescript se chama generic 
-    const [questions, setQuestions] = useState<Question[]>([]);
-
-    const [title, setTitle] = useState('');
-
     const roomId = params.id;
 
-    // A implementação do useEffect depende da documentação do firebase
-    // hook - função que dispara um evento, sempre que alguma informação mudar  
-    // se [] estiver vazio, a função {} sera disparado uma unica vez assim que o componente for exibido em tela 
+    //importando as funções transferidas para o useRoom
+    const {title, questions} = useRoom(roomId);
+    
+    // transferido para a pagina useRoom
+    //const [questions, setQuestions] = useState<QuestionType[]>([]);
+    //const [title, setTitle] = useState('');
+
+    /* **transferido para o useRoom.ts
     useEffect(() => {
-        //console.log(roomId);
-
-        // ir na API do firebase e buscar os dados das perguntas 
         const roomRef = database.ref(`rooms/${roomId}`);
-
-        // Event Listerner -> once (uma unica vez) ou on (mais de uma vez)
-        //roomRef.once('value', room => {
-
         // ira ficar ouvindo toda vez que uma nova informação é cadastrada na sala com o ${roomId }, ele ira executar o codigo de novo e vai substituir as informações em tela
         roomRef.on('value', room => {    
-            //console.log(room.val());
-
             const databaseRoom = room.val();
-            //const firebaseQuestions = databaseRoom.questions as FirebaseQuestions; // pode ser escrito dessa forma, ou da forma abaixo.
             const firebaseQuestions : FirebaseQuestions = databaseRoom.questions ?? {};
-
-            //modificar as questions - transformar de objeto para array
-            //o room.questions -> pode ser vazio, entao caso esteja ira retornar um objeto vazio 
-            //const parsedQuestions = Object.entries(room.questions ?? {});
-            
-            //o map ira percorrer cada valor dessa interação, o value é um conjunto de vetores - value[0] value[1] 
-            //destruturação - colocar um array no lado esquerdo da estruturação e obter essa informação
-            //adicionar o key no map para estruturar as informações que serao recebidas
             const parsedQuestions = Object.entries(firebaseQuestions).map(([key, value]) => {
-                //retornar os dados
                 return{
                     id: key,
                     content: value.content,
@@ -96,14 +66,12 @@ export function Room() {
                     isAnswered: value.isAnswered
                 }
             }); 
-            //console.log(parsedQuestions);
             setTitle(databaseRoom.title);
             setQuestions(parsedQuestions);
         })
     }, [roomId]); //isso evita que o usuario fique transitando entre salas 
-
+*/
     // Criação de novas perguntas
-    //todas as vezes que se coloca no formulario, deve-se incluir a variavel event 
     async function handleSendQuestion(event: FormEvent){
         //para nao recarregar a tela
         event.preventDefault();
@@ -131,15 +99,33 @@ export function Room() {
         };
 
         //salvar a pergunta
-        // ira criar uma nova coluna (questions) no firebase e ira incluir o objeto question
         await database.ref(`rooms/${roomId}/questions`).push(question);
 
         // assim que enviar a pergunta, ira deixara o campo em branco 
-        // ira substituir o estado do setNewQuestion e sera refletido no newQuestion
         setNewQuestion('');
     }
 
-    // <Button type="submit" disabled={!user}> Enviar pergunta</Button> -> no botao para enviar a pergunta sera desabilitado, caso o usuario nao esteja autenticado
+    //Funcionalidade do Like
+    //questionId -> ira trazer o id da pergunta 
+    async function handleLikeQuestion(questionId: string, likeId: string | undefined){
+        
+        // Caso o usuario ja tenha dado like, sera desmarcado o like 
+        if (likeId){
+            // remover o like
+            await database.ref(`rooms/${roomId}/questions/${questionId}/likes/${likeId}`).remove();
+        } else {
+            await database.ref(`rooms/${roomId}/questions/${questionId}/likes`).push({
+                authorId: user?.id,
+            });
+        }
+
+        /*
+        await database.ref(`rooms/${roomId}/questions/${questionId}/likes`).push({
+            authorId: user?.id,
+        });
+        */
+    }
+
     return (
         <div id="page-room">
             <header>
@@ -160,20 +146,11 @@ export function Room() {
                 <form onSubmit={handleSendQuestion}>
                     <textarea 
                     placeholder='O que você quer perguntar? '
-                    //Pegar o valor do input
                     onChange={event => setNewQuestion(event.target.value) }
                     value={newQuestion}
                     />
 
                     <div className='form-footer'>
-                        {/** Para fazer if/else dentro do react é usado o operador ternario 
-                         * user - se tiver alguma informação dentro do usuario
-                         * () - ira mostrar alguma coisa
-                         * : - senao 
-                         * () - ira mostrar outra coisa
-                         * 
-                         * user-info -> Informações do usuario
-                        *  */}
                         {user ? (
                             <div className="user-info">
                                 <img src={user.avatar} alt={user.name} />
@@ -186,8 +163,44 @@ export function Room() {
                     </div>
                 </form>
                 {/** Para visualizar as informações das perguntas em tela */}
-                {JSON.stringify(questions)};
+                {/*JSON.stringify(questions)}; */}
 
+            {/** O metodo map() funciona da mesma forma que o ForEach
+             * ele percorre cada um dos itens do questions e permite que retorne um componente novo em cada um deles 
+             * */}
+            <div className="question-list">
+            {questions.map(question => {
+                /** key={question.id} -> Algoritmo de reconcilição -É necessario passar o id para o react diferenciar uma pergunta da outra*/
+                    return (
+                        <Question 
+                        key={question.id} 
+                        content={question.content}
+                        author={question.author}
+                        >
+                        {/* Botoes de controle - like, responder, e etc 
+                          * aria-label -> acessibilidade - informar a funcionalidade do icone
+                        */}
+                        <button
+                            className={`like-button ${question.likeId ? 'liked' : ''}`}
+                            type='button'
+                            aria-label='Marcar como gostei'
+                            onClick={() => handleLikeQuestion(question.id, question.likeId)}
+                        >
+
+                            {/** numeros de like 
+                             * Apenas ira mostrar o likecount se o contador for maior que 0 */}
+                           { question.likeCount > 0 && <span>{question.likeCount}</span>}
+                            {/** Importar a imagem diretamento do svg - isso é feito para pode customizar o icone 
+                             * E precisa alterar as variaveis da imagem para camelCase 
+                            */}
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7 22H4C3.46957 22 2.96086 21.7893 2.58579 21.4142C2.21071 21.0391 2 20.5304 2 20V13C2 12.4696 2.21071 11.9609 2.58579 11.5858C2.96086 11.2107 3.46957 11 4 11H7M14 9V5C14 4.20435 13.6839 3.44129 13.1213 2.87868C12.5587 2.31607 11.7956 2 11 2L7 11V22H18.28C18.7623 22.0055 19.2304 21.8364 19.5979 21.524C19.9654 21.2116 20.2077 20.7769 20.28 20.3L21.66 11.3C21.7035 11.0134 21.6842 10.7207 21.6033 10.4423C21.5225 10.1638 21.3821 9.90629 21.1919 9.68751C21.0016 9.46873 20.7661 9.29393 20.5016 9.17522C20.2371 9.0565 19.9499 8.99672 19.66 9H14Z" stroke="#737380" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                        </button>
+                        </Question>
+                    );
+                })}
+            </div>
             </main>
         </div>
     );

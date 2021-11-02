@@ -36,7 +36,6 @@ export function Home(){
         };        
 
         // Entrando na sala 
-        // essa função é usada no formulario, quando se usa uma função em um formulario precisa declarar o evento
         async function handleJoinRoom(event: FormEvent){
             event.preventDefault(); // precisa declarar em todo formulario no react
 
@@ -46,12 +45,16 @@ export function Home(){
             }
 
             // ira puxar o id no firebase e comparar 
-            // get() -> ira puxar todos os dados dessa sala especificamente
             const roomRef = await database.ref(`rooms/${roomCode}`).get();
 
             // caso nao exista a sala informada
             if(!roomRef.exists()){
                 alert('A sala não existe');
+                return;
+            }
+
+            if (roomRef.val().endedAt){
+                alert('A sala já foi encerrada');
                 return;
             }
 

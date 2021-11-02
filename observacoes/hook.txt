@@ -1,0 +1,3 @@
+Em aplicações react é muito comum usar os hooks, 
+sempre quando se percebe que uma logica é compartilhada entre mais de um componente,
+é criado um hook para compartilhar essa logica.
